@@ -82,6 +82,7 @@
     <ClInclude Include="regex_ast.h" />
     <ClInclude Include="regex_parser.h" />
     <ClInclude Include="regex_parser_tests.h" />
+    <ClInclude Include="string_token.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

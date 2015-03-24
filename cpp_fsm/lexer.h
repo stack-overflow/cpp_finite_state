@@ -3,6 +3,7 @@
 
 #include "nfa.h"
 #include "regex_parser.h"
+#include "string_token.h"
 
 #include <vector>
 
@@ -59,7 +60,7 @@ public:
 	{
 		nfa *n = build_nfa();
 		dfa *d = convert_to_dfa(n);
-		machine = minimize(d);
+		machine = std::unique_ptr<dfa>(minimize(d));
 		machine->init();
 		current = machine->start_state;
 
@@ -70,19 +71,18 @@ public:
 		delete n;
 	}
 
-	~lexer()
-	{
-		delete machine;
-	}
-
-	std::string get_next_token()
+	/*
+		Greedy scan algorithm.
+		Take the longest matching token.
+	*/
+	string_token *get_next_token()
 	{
 		int cur = current;
 		int last_accept_state = -1;
 		int last_accept_pos = -1;
 
-		std::string token;
-		token.reserve(8);
+		std::string lexeme;
+		lexeme.reserve(8);
 
 		while (pos < (int)input.size() &&
 			(current = machine->next(current, input[pos])) != -1)
@@ -92,16 +92,21 @@ public:
 				last_accept_state = current;
 				last_accept_pos = pos;
 			}
-			token += input[pos];
+			lexeme += input[pos];
 			++pos;
 		}
 
-		if (pos < input.size() && last_accept_state != -1)
+		string_token *token = nullptr;
+
+		if (last_accept_state != -1)
 		{
+			std::string type = machine->get_token(last_accept_state);
 			pos = last_accept_pos + 1;
 			last_accept_pos = last_accept_state = -1;
 			current = machine->start_state;
-			token = token.substr(0, pos - last_accept_pos);
+			lexeme = lexeme.substr(0, pos - last_accept_pos);
+
+			token = new string_token(std::move(type), std::move(lexeme));
 		}
 
 		return token;
@@ -109,11 +114,10 @@ public:
 
 private:
     std::vector<lexer_entry> rules;
-	dfa *machine;
+	std::unique_ptr<dfa> machine;
 	int current;
 	std::string input;
 	int pos;
-
 };
 
 #endif

@@ -34,6 +34,18 @@ struct dfa
 		}
 	}
 
+	std::string get_token(int state)
+	{
+		if (state >= 0)
+		{
+			return *tokens[state].begin();
+		}
+		else
+		{
+			return "";
+		}
+	}
+
 	bool run_on_word(const std::string &word)
 	{
 		size_t i = 0;

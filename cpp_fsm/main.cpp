@@ -90,13 +90,11 @@ int main()
 		le.add_token("multiple e-h", "[e-h]+");
 		le.init("a aabb e eeff");
 
-		std::cout << "Token: " << le.get_next_token() << std::endl;
-		std::cout << "Token: " << le.get_next_token() << std::endl;
-		std::cout << "Token: " << le.get_next_token() << std::endl;
-		std::cout << "Token: " << le.get_next_token() << std::endl;
-		std::cout << "Token: " << le.get_next_token() << std::endl;
-		std::cout << "Token: " << le.get_next_token() << std::endl;
-		std::cout << "Token: " << le.get_next_token() << std::endl;
+		string_token *t = nullptr;
+		while ((t = le.get_next_token()) != nullptr)
+		{
+			std::cout << "Token(" << t->type << "): " << t->name << std::endl;
+		}
 
 	}
 

@@ -53,5 +53,8 @@
     <ClInclude Include="regex_parser_tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="string_token.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
