@@ -95,7 +95,38 @@ int main()
 		{
 			std::cout << "Token(" << t->type << "): " << t->name << std::endl;
 		}
+	}
+	{
+		lexer le;
+		le.add_token("number", "[0-9]+");
+		le.add_token("open_bracket", "{");
+		le.add_token("close_bracket", "}");
+		le.add_token("open_paren", "\\(");
+		le.add_token("close_paren", "\\)");
+		le.add_token("if", "if");
+		le.add_token("while", "while");
+		le.add_token("do", "do");
+		le.add_token("switch", "switch");
+		le.add_token("case", "case");
+		le.add_token("delete", "delete");
+		le.add_token("return", "return");
+		le.add_token("include", "#include");
+		le.add_token("type_decl", "int|float|char|short|unsigned|long|void|const|bool");
+		le.add_token("op", "++|+|==|!=|=|/|-|<|>|%");
+		le.add_token("star", "*");
+		le.add_token("semicolon", ";");
+		le.add_token("string_literal", "\"[a-zA-Z0-9 ]*\"");
+		le.add_token("id", "[A-Za-z_][A-Za-z0-9_]*");
+		le.add_token("space", " ");
 
+		le.init("while (1) { if(x > 5) { i++; } } const char *str = \"test string literal\"");
+
+		string_token *t = nullptr;
+		while ((t = le.get_next_token()) != nullptr)
+		{
+			if (t->type != "space")
+				std::cout << "Token(" << t->type << "): " << t->name << std::endl;
+		}
 	}
 
 	return 0;

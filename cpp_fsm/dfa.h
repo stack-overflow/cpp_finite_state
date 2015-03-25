@@ -34,15 +34,15 @@ struct dfa
 		}
 	}
 
-	std::string get_token(int state)
+	std::set<std::string> get_tokens(int state)
 	{
 		if (state >= 0)
 		{
-			return *tokens[state].begin();
+			return tokens[state];
 		}
 		else
 		{
-			return "";
+			return {};
 		}
 	}
 

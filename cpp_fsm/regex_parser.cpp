@@ -1,7 +1,5 @@
 #include "regex_parser.h"
 
-#include <iostream>
-
 regex_parser::regex_parser(const std::string &in) :
 	input(in),
 	pos(0)
@@ -98,7 +96,13 @@ regex *regex_parser::parse_base()
 		eat(')');
 		break;
 	case '\\':
-		eat('\\');
+		c = next();
+		if (has_next())
+		{
+			c = next();
+		}
+		re = new atom(c);
+		break;
 	case '[':
 		eat('[');
 		re = parse_char_alternative();
@@ -115,6 +119,7 @@ regex *regex_parser::parse_char_alternative()
 {
 	alternative *alt = new alternative;
 	std::string str;
+
 	while (has_next() && check() != ']')
 	{
 		unsigned char c = next();

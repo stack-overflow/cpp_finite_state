@@ -24,12 +24,14 @@ public:
     lexer() {}
     lexer(const std::vector<lexer_entry> &in_rules) :
         rules(in_rules),
-		machine(nullptr)
+		machine(nullptr),
+		num_priority(0)
     {}
 
 	void add_token(const char *token, const char *regex)
 	{
 		rules.emplace_back(token, regex);
+		priority.insert(std::make_pair(token, num_priority++));
 	}
 
     nfa *build_nfa()
@@ -100,24 +102,44 @@ public:
 
 		if (last_accept_state != -1)
 		{
-			std::string type = machine->get_token(last_accept_state);
+			std::string final_type = get_token(last_accept_state);
 			pos = last_accept_pos + 1;
 			last_accept_pos = last_accept_state = -1;
 			current = machine->start_state;
 			lexeme = lexeme.substr(0, pos - last_accept_pos);
 
-			token = new string_token(std::move(type), std::move(lexeme));
+			token = new string_token(std::move(final_type), std::move(lexeme));
 		}
 
 		return token;
 	}
 
+	std::string get_token(int state)
+	{
+		auto types = machine->get_tokens(state);
+		std::string final_type = "";
+		int min_priority = INT_MAX;
+		for (auto type : types)
+		{
+			auto p = priority[type];
+			if (p < min_priority)
+			{
+				min_priority = p;
+				final_type = type;
+			}
+		}
+
+		return final_type;
+	}
+
 private:
     std::vector<lexer_entry> rules;
 	std::unique_ptr<dfa> machine;
+	std::unordered_map<std::string, int> priority;
 	int current;
 	std::string input;
 	int pos;
+	int num_priority;
 };
 
 #endif
