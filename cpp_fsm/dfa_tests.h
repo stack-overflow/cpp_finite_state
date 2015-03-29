@@ -7,6 +7,7 @@
 
 namespace dfa_tests
 {
+	inline
 	dfa *create_fie_fee_not_minimal_dfa()
 	{
 		dfa *d = new dfa;
@@ -47,7 +48,7 @@ namespace dfa_tests
 	void test_simple_minimal()
 	{
 		dfa *d = create_fie_fee_not_minimal_dfa();
-		dfa *min_d = minimize(d);
+		dfa *min_d = dfa::minimize(d);
 
 		assert(min_d->run_on_word("fie") == true);
 		assert(min_d->run_on_word("fie") == true);
@@ -85,7 +86,7 @@ namespace dfa_tests
 		// Init current to start state
 		n.init();
 
-		dfa *d = convert_to_dfa(&n);
+		dfa *d = dfa::convert_to_dfa(&n);
 
 		assert(d->run_on_word("ala") == true);
 		assert(d->run_on_word("abd") == true);

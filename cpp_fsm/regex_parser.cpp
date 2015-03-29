@@ -15,8 +15,8 @@ std::unique_ptr<dfa> regex_parser::compile()
 	n->set_accepting(compiled_re.second);
 	n->init();
 
-	dfa *d = convert_to_dfa(n);
-	dfa *min_d = minimize(d);
+	dfa *d = dfa::convert_to_dfa(n);
+	dfa *min_d = dfa::minimize(d);
 
 	delete d;
 	delete re;
@@ -108,6 +108,10 @@ regex *regex_parser::parse_base()
 		re = parse_char_alternative();
 		eat(']');
 		break;
+	case '.':
+		eat('.');
+		re = parse_dot_alternative();
+		break;
 	default:
 		re = parse_atom();
 		break;
@@ -115,9 +119,19 @@ regex *regex_parser::parse_base()
 	return re;
 }
 
+regex *regex_parser::parse_dot_alternative()
+{
+	char_alternative *alt = new char_alternative;
+	for (unsigned char c = 0; c < UCHAR_MAX; ++c)
+	{
+		alt->add(c);
+	}
+	return alt;
+}
+
 regex *regex_parser::parse_char_alternative()
 {
-	alternative *alt = new alternative;
+	char_alternative *alt = new char_alternative;
 	std::string str;
 
 	while (has_next() && check() != ']')
@@ -141,8 +155,7 @@ regex *regex_parser::parse_char_alternative()
 
 	for (char c : str)
 	{
-		regex *at = new atom(c);
-		alt->alt.push_back(at);
+		alt->add(c);
 	}
 
 	return alt;

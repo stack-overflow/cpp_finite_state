@@ -1,6 +1,8 @@
 #ifndef __NFA_H__
 #define __NFA_H__
 
+#include "string_token.h"
+
 #include <map>
 #include <set>
 #include <unordered_set>
@@ -19,22 +21,23 @@ struct nfa
 	int start_state;
 	std::map<int, transition_map> transitions;
 	std::map<int, state_set> epsilon_transitions;
-    std::unordered_map<int, std::string> tokens;
+	std::unordered_map<int, token_id> tokens;
 	state_set accept;
 	state_set current;
 
 	bool next(unsigned char c);
 	bool run_on_word(const std::string &word);
 	bool is_accepting();
-    std::vector<std::string> get_tokens()
+
+	std::set<token_id> get_tokens()
     {
-        std::vector<std::string> ret;
+        std::set<int> ret;
         for (int sub : current)
         {
             auto found = tokens.find(sub);
             if (found != tokens.end())
             {
-                ret.push_back(found->second);
+                ret.insert(found->second);
             }
         }
         return ret;

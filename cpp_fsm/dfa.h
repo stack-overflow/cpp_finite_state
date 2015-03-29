@@ -2,6 +2,7 @@
 #define __DFA_H__
 
 #include "nfa.h"
+#include "string_token.h"
 
 #include <vector>
 #include <string>
@@ -10,31 +11,17 @@ struct dfa
 {
 	int num_states;
 	int start_state;
-	int current;
 
 	std::vector< std::vector<int> > transitions;
 	std::vector<int> accept;
-	std::unordered_map< int, std::set<std::string> > tokens;
+	std::unordered_map< int, std::set<token_id> > tokens;
 
 	dfa() :
 		num_states(0),
-		start_state(-1),
-		current(-1)
+		start_state(-1)
 	{}
 
-	std::set<std::string> get_tokens()
-	{
-		if (current >= 0)
-		{
-			return tokens[current];
-		}
-		else
-		{
-			return {};
-		}
-	}
-
-	std::set<std::string> get_tokens(int state)
+	std::set<int> get_tokens(int state)
 	{
 		if (state >= 0)
 		{
@@ -49,7 +36,7 @@ struct dfa
 	bool run_on_word(const std::string &word)
 	{
 		size_t i = 0;
-		init();
+		int current = start_state;
 
 		while (i < word.length() && current != -1)
 		{
@@ -57,7 +44,7 @@ struct dfa
 			current = transitions[current][c];
 		}
 
-		return is_accepting();
+		return is_accepting(current);
 	}
 
 	bool is_accepting(int state)
@@ -74,12 +61,10 @@ struct dfa
 		return -1;
 	}
 
-	void init() { current = start_state; }
-	bool is_accepting() { return current >= 0 && accept[current]; }
 	int new_state() { return num_states++; }
-};
 
-dfa *convert_to_dfa(nfa *n);
-dfa *minimize(const dfa *const d);
+	static dfa *convert_to_dfa(nfa *n);
+	static dfa *minimize(const dfa *const d);
+};
 
 #endif

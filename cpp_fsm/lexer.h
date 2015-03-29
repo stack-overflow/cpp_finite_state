@@ -6,15 +6,15 @@
 #include "string_token.h"
 
 #include <vector>
-
+#include <iostream>
 struct lexer_entry
 {
-    lexer_entry(const char *in_name, const char *in_pattern) :
+	lexer_entry(token_id in_name, const char *in_pattern) :
         name(in_name),
         pattern(regex_parser(in_pattern).parse_regex())
     {}
 
-    const char *name;
+	token_id name;
     regex *pattern;
 };
 
@@ -28,7 +28,7 @@ public:
 		num_priority(0)
     {}
 
-	void add_token(const char *token, const char *regex)
+	void add_token(token_id token, const char *regex)
 	{
 		rules.emplace_back(token, regex);
 		priority.insert(std::make_pair(token, num_priority++));
@@ -58,19 +58,22 @@ public:
         return n;
     }
 
-	void init(const std::string &text)
+	void init()
 	{
 		nfa *n = build_nfa();
-		dfa *d = convert_to_dfa(n);
-		machine = std::unique_ptr<dfa>(minimize(d));
-		machine->init();
+		dfa *d = dfa::convert_to_dfa(n);
+		machine = std::unique_ptr<dfa>(dfa::minimize(d));
+
 		current = machine->start_state;
 
-		input = text;
-		pos = 0;
-		
 		delete d;
 		delete n;
+	}
+
+	void set_input(const std::string &text)
+	{
+		input = text;
+		pos = 0;
 	}
 
 	/*
@@ -82,13 +85,19 @@ public:
 		int cur = current;
 		int last_accept_state = -1;
 		int last_accept_pos = -1;
+		int started_matching = -1;
 
 		std::string lexeme;
 		lexeme.reserve(8);
+		bool been_in_loop = false;
 
 		while (pos < (int)input.size() &&
 			(current = machine->next(current, input[pos])) != -1)
 		{
+			if (started_matching == -1)
+			{
+				started_matching = pos;
+			}
 			if (machine->is_accepting(current))
 			{
 				last_accept_state = current;
@@ -96,31 +105,59 @@ public:
 			}
 			lexeme += input[pos];
 			++pos;
+			been_in_loop = true;
 		}
 
 		string_token *token = nullptr;
 
 		if (last_accept_state != -1)
 		{
-			std::string final_type = get_token(last_accept_state);
-			pos = last_accept_pos + 1;
-			last_accept_pos = last_accept_state = -1;
-			current = machine->start_state;
-			lexeme = lexeme.substr(0, pos - last_accept_pos);
+			token_id final_type = get_token(last_accept_state);
+			/* Note that pos is greater by 1 that lexeme's last pos.
+			 * This comes from the fact that there is ++pos in aboves loop.
+			*/
 
-			token = new string_token(std::move(final_type), std::move(lexeme));
+			int overflow = ((pos - 1) - last_accept_pos);
+			int valid_length = lexeme.length() - overflow;
+
+			int end_pos = (pos - 1) - overflow;
+			int start_pos = end_pos - (valid_length - 1);
+
+			lexeme = lexeme.substr(0, valid_length);
+			token = new string_token(std::move(final_type), std::move(lexeme), start_pos, end_pos);
+
+			current = machine->start_state;
+			pos = last_accept_pos + 1;
 		}
+		else if (started_matching != -1)
+		{
+			lexeme = lexeme.substr(0, 1);
+			token = new string_token(string_token::token_unknown, std::move(lexeme), started_matching, started_matching);
+			
+			pos = started_matching + 1;
+			current = machine->start_state;
+		}
+		else if (pos < (int) input.length())
+		{
+			lexeme += input[pos];
+			token = new string_token(string_token::token_unknown, std::move(lexeme), pos, pos);
+
+			pos += 1;
+			current = machine->start_state;
+		}
+
 
 		return token;
 	}
 
-	std::string get_token(int state)
+	token_id get_token(int state)
 	{
 		auto types = machine->get_tokens(state);
-		std::string final_type = "";
+		token_id final_type = -1;
 		int min_priority = INT_MAX;
 		for (auto type : types)
 		{
+			//std::cout << type << std::endl;
 			auto p = priority[type];
 			if (p < min_priority)
 			{
@@ -135,7 +172,7 @@ public:
 private:
     std::vector<lexer_entry> rules;
 	std::unique_ptr<dfa> machine;
-	std::unordered_map<std::string, int> priority;
+	std::unordered_map<token_id, int> priority;
 	int current;
 	std::string input;
 	int pos;

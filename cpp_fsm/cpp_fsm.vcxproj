@@ -69,7 +69,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dfa.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main_test.cpp" />
+    <ClCompile Include="naive_bayes.cpp" />
     <ClCompile Include="nfa.cpp" />
     <ClCompile Include="regex_parser.cpp" />
   </ItemGroup>
@@ -77,6 +78,7 @@
     <ClInclude Include="dfa.h" />
     <ClInclude Include="dfa_tests.h" />
     <ClInclude Include="lexer.h" />
+    <ClInclude Include="lexer_tests.h" />
     <ClInclude Include="nfa.h" />
     <ClInclude Include="nfa_tests.h" />
     <ClInclude Include="regex_ast.h" />

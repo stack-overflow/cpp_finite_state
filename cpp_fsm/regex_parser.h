@@ -21,6 +21,7 @@ private:
 	regex *parse_factor();
 	regex *parse_sequence();
 	regex *parse_char_alternative();
+	regex *parse_dot_alternative();
 
 	bool has_next() { return pos < input.length(); }
     unsigned char next() { return *(unsigned char *)&input[pos++]; }

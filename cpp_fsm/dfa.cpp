@@ -17,7 +17,7 @@ TValue get_or_create_with_func(std::map<TKey, TValue>& src, TKey key, TFunc init
 	return found_range.first->second;
 }
 
-dfa *convert_to_dfa(nfa *n)
+dfa *dfa::convert_to_dfa(nfa *n)
 {
 	n->init();
 
@@ -28,7 +28,7 @@ dfa *convert_to_dfa(nfa *n)
 	std::unordered_map< int, std::unordered_map<unsigned char, int> > dfa_table;
 	std::map<state_set, int> to_dfa_state;
 
-	std::unordered_map< int, std::vector<std::string> > dfa_tokens;
+	std::unordered_map< int, std::set<token_id> > dfa_tokens;
 
 	dfa *d = new dfa;
 
@@ -153,7 +153,7 @@ void state_set_split(const dfa *const d, std::vector<int> &t, std::vector<int> &
 		bool first = true;
 		bool c_splits = false;
 		int last, last_part;
-		std::set<std::string> last_token;
+		std::set<int> last_token;
 
 		for (int s = 0; s < (int)t.size(); ++s)
 		{
@@ -174,7 +174,7 @@ void state_set_split(const dfa *const d, std::vector<int> &t, std::vector<int> &
 					int next_part = next_on_c != -1 ? p[next_on_c] : -1;
 					auto tokens = d->tokens.find(s);
 
-					std::set<std::string> current_token;
+					std::set<int> current_token;
 					if (tokens != d->tokens.end())
 						current_token = tokens->second;
 
@@ -230,12 +230,11 @@ dfa *compress_dfa_states(const dfa *const d, const std::vector<int> &new_states,
 	}
 
 	new_d->num_states = num_new_states;
-	new_d->init();
 
 	return new_d;
 }
 
-dfa *minimize(const dfa *const d)
+dfa *dfa::minimize(const dfa *const d)
 {
 	std::vector<int> t(d->accept.size(), -1);
 	std::vector<int> p(d->accept.size(), -1);

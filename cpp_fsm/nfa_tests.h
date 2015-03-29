@@ -2,7 +2,6 @@
 #define __NFA_TESTS_H__
 
 #include "nfa.h"
-#include "dfa.h"
 
 #include <iostream>
 #include <string>

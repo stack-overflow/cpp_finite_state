@@ -51,7 +51,7 @@ struct sequence : public regex
 			}
 			last = sp.second;
 		}
-		return{ start, last };
+		return { start, last };
 	}
 
 	virtual ~sequence()
@@ -88,6 +88,33 @@ struct alternative : public regex
 		{
 			delete re;
 		}
+	}
+};
+
+struct char_alternative : public regex
+{
+	std::set<unsigned char> char_alt;
+
+	virtual state_pair to_nfa(nfa *n)
+	{
+		int start = n->new_state();
+		int last = n->new_state();
+
+		for (char c : char_alt)
+		{
+			n->add_transition(start, last, c);
+		}
+
+		return { start, last };
+	}
+
+	void add(unsigned char c)
+	{
+		char_alt.insert(c);
+	}
+
+	virtual ~char_alternative()
+	{
 	}
 };
 
