@@ -39,7 +39,7 @@ struct string_token
 	int start_pos;
 	int end_pos;
 
-	static const int token_unknown = -1;
+	static const int token_unknown = INT_MAX;
 	static const int token_first_valid = 0;
 };
 

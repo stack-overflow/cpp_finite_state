@@ -1,5 +1,8 @@
 #include "regex_parser.h"
 
+#include <list>
+#include <algorithm>
+
 regex_parser::regex_parser(const std::string &in) :
 	input(in),
 	pos(0)
@@ -132,7 +135,15 @@ regex *regex_parser::parse_dot_alternative()
 regex *regex_parser::parse_char_alternative()
 {
 	char_alternative *alt = new char_alternative;
-	std::string str;
+	std::list<unsigned char> str;
+
+	bool negate = false;
+
+	if (has_next() && check() == '^')
+	{
+		eat('^');
+		negate = true;
+	}
 
 	while (has_next() && check() != ']')
 	{
@@ -144,18 +155,36 @@ regex *regex_parser::parse_char_alternative()
 
 			for (unsigned char alt_c = str.back() + 1; alt_c <= end; ++alt_c)
 			{
-				str += alt_c;
+				str.push_back(alt_c);
 			}
 		}
 		else
 		{
-			str += c;
+			str.push_back(c);
 		}
 	}
 
-	for (char c : str)
+	if (!negate)
 	{
-		alt->add(c);
+		for (unsigned char c : str)
+		{
+			alt->add(c);
+		}
+	}
+	else
+	{
+		str.sort();
+		for (unsigned char c = 0; c < UCHAR_MAX; ++c)
+		{
+			if (str.empty() || str.front() != c)
+			{
+				alt->add(c);
+			}
+			else if (!str.empty() && str.front() == c)
+			{
+				str.pop_front();
+			}
+		}
 	}
 
 	return alt;

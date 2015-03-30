@@ -100,7 +100,7 @@ struct char_alternative : public regex
 		int start = n->new_state();
 		int last = n->new_state();
 
-		for (char c : char_alt)
+		for (unsigned char c : char_alt)
 		{
 			n->add_transition(start, last, c);
 		}

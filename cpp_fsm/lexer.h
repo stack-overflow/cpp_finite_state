@@ -6,7 +6,8 @@
 #include "string_token.h"
 
 #include <vector>
-#include <iostream>
+#include <algorithm>
+
 struct lexer_entry
 {
 	lexer_entry(token_id in_name, const char *in_pattern) :
@@ -31,7 +32,6 @@ public:
 	void add_token(token_id token, const char *regex)
 	{
 		rules.emplace_back(token, regex);
-		priority.insert(std::make_pair(token, num_priority++));
 	}
 
     nfa *build_nfa()
@@ -131,6 +131,7 @@ public:
 		}
 		else if (started_matching != -1)
 		{
+			/* There were transition in the DFA and the loop was visited. */
 			lexeme = lexeme.substr(0, 1);
 			token = new string_token(string_token::token_unknown, std::move(lexeme), started_matching, started_matching);
 			
@@ -139,6 +140,7 @@ public:
 		}
 		else if (pos < (int) input.length())
 		{
+			/* There was no transition on input[pos]. */
 			lexeme += input[pos];
 			token = new string_token(string_token::token_unknown, std::move(lexeme), pos, pos);
 
@@ -146,33 +148,25 @@ public:
 			current = machine->start_state;
 		}
 
-
 		return token;
 	}
 
 	token_id get_token(int state)
 	{
-		auto types = machine->get_tokens(state);
-		token_id final_type = -1;
-		int min_priority = INT_MAX;
-		for (auto type : types)
+		auto tokens = machine->get_tokens(state);
+		if (!tokens.empty())
 		{
-			//std::cout << type << std::endl;
-			auto p = priority[type];
-			if (p < min_priority)
-			{
-				min_priority = p;
-				final_type = type;
-			}
+			return *std::min_element(tokens.begin(), tokens.end());
 		}
-
-		return final_type;
+		else
+		{
+			return string_token::token_unknown;
+		}
 	}
 
 private:
     std::vector<lexer_entry> rules;
 	std::unique_ptr<dfa> machine;
-	std::unordered_map<token_id, int> priority;
 	int current;
 	std::string input;
 	int pos;
